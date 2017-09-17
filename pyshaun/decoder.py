@@ -1,6 +1,7 @@
 import re
 import curses.ascii
 from enum import Enum
+from .numeric import Numeric
 
 __all__ = ['SHAUNDecoder']
 
@@ -57,7 +58,7 @@ class SHAUNDecoder(object):
             self.no_unit_single = no_unit_single
 
         if numeric_ctor is None:
-            self.numeric_ctor = lambda x, y: (x, y)
+            self.numeric_ctor = lambda x, y: Numeric(x, y)
         else:
             self.numeric_ctor = numeric_ctor
 
@@ -142,13 +143,11 @@ class SHAUNDecoder(object):
         while curses.ascii.isdigit(c) or c in NUM_SYMS:
             snum = snum + c
             c = self.next()
-        self.next()
+
         self.push_token(TokenType.NUM_LIT, float(snum))
 
     def lex_string(self):
         c = self.next()
-        sl = []
-        start_col = self.col
         escape = { 'n' : '\n'
                  , 't' : '\t'
                  , 'd' : '\d'
@@ -164,10 +163,13 @@ class SHAUNDecoder(object):
             full = full + c
             c = self.next()
 
+        self.next()
         sl = full.split('\n')
 
         if len(sl) <= 1:
-            return full
+            self.push_token(TokenType.STR_LIT, full)
+            return
+
         if sl[0] == '':
             del sl[0]
 
@@ -186,7 +188,6 @@ class SHAUNDecoder(object):
         for i in range(len(sl)):
             sl[i] = sl[i][start:]
 
-        self.next()
         self.push_token(TokenType.STR_LIT, '\n'.join(sl))
 
     def push_token(self, t, v):
