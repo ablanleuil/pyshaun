@@ -147,17 +147,47 @@ class SHAUNDecoder(object):
 
     def lex_string(self):
         c = self.next()
-        s = ''
+        sl = []
+        start_col = self.col
+        escape = { 'n' : '\n'
+                 , 't' : '\t'
+                 , 'd' : '\d'
+                 , 'f' : '\f'
+                 , 'r' : '\r'
+                 , '"' : '"'
+                 , '\\' : '\\' }
 
+        full = ''
         while c != '"':
-            if c == '/':
+            if c == '\\':
                 c = escape[self.next()]
-
-            s = s + c
+            full = full + c
             c = self.next()
 
+        sl = full.split('\n')
+
+        if len(sl) <= 1:
+            return full
+        if sl[0] == '':
+            del sl[0]
+
+        minL = None
+        for s in sl:
+            start = 0
+            for c in s:
+                if c != ' ':
+                    break
+                start = start + 1
+            if minL is None:
+                minL = start
+            else:
+                minL = min(minL, start)
+
+        for i in range(len(sl)):
+            sl[i] = sl[i][start:]
+
         self.next()
-        self.push_token(TokenType.STR_LIT, s)
+        self.push_token(TokenType.STR_LIT, '\n'.join(sl))
 
     def push_token(self, t, v):
         self.tokens.append(Token(t, v, self.raw, self.col))
