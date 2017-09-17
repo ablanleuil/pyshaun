@@ -1,7 +1,9 @@
-__version__ = '0.0.2'
-__all__ = [ 'load', 'load_file', 'dump' ]
+__version__ = '0.1.0'
+__all__ = [ 'load', 'load_file', 'dump', 'Numeric' ]
 
 from .decoder import SHAUNDecoder
+from .prettyprinter import SHAUNPP
+from .numeric import Numeric
 
 def load_file(fp, **kwargs):
     try:
@@ -15,4 +17,4 @@ def load(s, **kwargs):
     return dec.decode()
 
 def dump(sn):
-    return SHAUNPP(sn).encode()
+    return SHAUNPP(sn).dump()
