@@ -4,7 +4,8 @@ class SHAUNPP(object):
     def __init__(self, shaun, indent_symbol='  '):
         self.shaun = shaun
         self.indent_symbol = indent_symbol
-        self.indent_level = 0
+        self.indent_list = []
+        self.fs = ''
 
     def print(self, to_print):
         lst = [ (lambda x: isinstance(x, (list, tuple)), self.print_list)
@@ -19,38 +20,64 @@ class SHAUNPP(object):
                 return f(to_print)
 
     def indent(self):
-        return self.indent_level * self.indent_symbol
+        self.put(''.join(self.indent_list))
+
+    def inc(self, sym=None):
+        if sym is None:
+            sym = self.indent_symbol
+        else:
+            sym = sym * ' '
+        self.indent_list.append(sym)
+
+    def dec(self):
+        del self.indent_list[len(self.indent_list)-1]
+
+    def put(self, string):
+        self.fs = self.fs + string
 
     def print_list(self, lst):
-        self.indent_level = self.indent_level + 1
-        ret = ('\n' + self.indent()).join(map(lambda e: self.print(e), lst))
-        self.indent_level = self.indent_level - 1
-        return '[\n' + ret + ' ]'
+        self.put('[')
+        self.inc(2)
+        for e in lst:
+            self.put('\n')
+            self.indent()
+            self.print(e)
+        self.dec()
+        self.put('\n')
+        self.indent()
+        self.put(']')
 
     def print_object(self, obj):
-
-        self.indent_level = self.indent_level + 1
-        ret = []
+        self.put('{')
+        self.inc(2)       
         for k, v in obj.items():
-            ret.append(self.indent() + k + ':' + self.print(v))
-        self.indent_level = self.indent_level - 1
+            self.put('\n')
+            self.indent()
+            self.put(k + ': ')
 
-        return self.indent() + '{\n' + '\n'.join(ret) + '\n' + self.indent() + '}'
+            self.inc(len(k) + 2)
+            self.print(v)
+            self.dec()
+    
+        self.dec()
+        self.put('\n')
+        self.indent()
+        self.put('}')
 
     def print_numeric(self, num):
-        return str(num)
+        self.put(str(num))
 
     def print_bool(self, b):
         if b:
-            return 'true'
+            self.put('true')
         else:
-            return 'false'
+            self.put('false')
 
     def print_null(self, n):
-        return 'null'
+        self.put('null')
 
     def print_string(self, string):
-        return '"' + self.escape(string) + '"'
+        self.put('"' + self.escape(string) + '"')
 
     def escape(self, s):
         ret = ''
@@ -69,4 +96,5 @@ class SHAUNPP(object):
         return ret
 
     def dump(self):
-        return self.print(self.shaun)
+        self.print(self.shaun)
+        return self.fs
