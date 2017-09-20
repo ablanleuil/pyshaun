@@ -1,4 +1,4 @@
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 __all__ = [ 'load', 'load_file', 'dump', 'Numeric' ]
 
 from .decoder import SHAUNDecoder
