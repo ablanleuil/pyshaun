@@ -1,4 +1,4 @@
-import re
+# import re
 import curses.ascii
 from enum import Enum
 from .numeric import Numeric
@@ -45,9 +45,9 @@ class Token(object):
     def __repr__(self):
         return str(self)
 
-COMBEG = [ '/', '#', '(' ]
-WSLIST = [ ' ', '\n', ',', '\t' ] + COMBEG
-NUM_SYMS = [ '+', '-', '.', 'e', 'E' ]
+COMBEG = ['/', '#', '(']
+WSLIST = [' ', '\n', ',', '\t'] + COMBEG
+NUM_SYMS = ['+', '-', '.', 'e', 'E']
 
 class SHAUNDecoder(object):
     def __init__(self, buf, no_unit_single=None, numeric_ctor=None):
@@ -66,7 +66,7 @@ class SHAUNDecoder(object):
         self.ti = 0
 
         self.buf = buf
-        self.i  = 0
+        self.i = 0
 
         self.raw = 1
         self.col = 1
@@ -93,68 +93,70 @@ class SHAUNDecoder(object):
 
     def skipcom(self):
         pass
-                
+
     def lex(self):
-        c = self.peek()
-        while c != '':
-            if curses.ascii.isalpha(c):
+        char = self.peek()
+        while char != '':
+            if curses.ascii.isalpha(char):
                 self.lex_name()
-            elif curses.ascii.isdigit(c) or c == '.' or c == '+' or c == '-':
+            elif curses.ascii.isdigit(char) or char == '.' or char == '+' or char == '-':
                 self.lex_numeric()
-            elif c == '{':
+            elif char == '{':
                 self.push_token(TokenType.LBRACKET, None)
-                c = self.next()
-            elif c == '}':
+                char = self.next()
+            elif char == '}':
                 self.push_token(TokenType.RBRACKET, None)
-                c = self.next()
-            elif c == '[':
+                char = self.next()
+            elif char == '[':
                 self.push_token(TokenType.LHOOK, None)
-                c = self.next()
-            elif c == ']':
+                char = self.next()
+            elif char == ']':
                 self.push_token(TokenType.RHOOK, None)
-                c = self.next()
-            elif c == ':':
+                char = self.next()
+            elif char == ':':
                 self.push_token(TokenType.ATTRIB_SEP, None)
-                c = self.next()
-            elif c == '"':
+                char = self.next()
+            elif char == '"':
                 self.lex_string()
             self.skipws()
-            c = self.peek()
+            char = self.peek()
 
     def lex_name(self):
-        c = self.peek()
-        s = ''
+        char = self.peek()
+        string = ''
 
-        while curses.ascii.isalnum(c) or c == '_':
-            s = s + c
-            c = self.next()
+        while curses.ascii.isalnum(char) or char == '_':
+            string = string + char
+            char = self.next()
 
-        if s == 'true' or s == 'false':
-            self.push_token(TokenType.BOOL_LIT, s == 'true')
-        elif s == 'null':
+        if string == 'true' or string == 'false':
+            self.push_token(TokenType.BOOL_LIT, string == 'true')
+        elif string == 'null':
             self.push_token(TokenType.NULL_LIT, None)
         else:
-            self.push_token(TokenType.NAME, s)
+            self.push_token(TokenType.NAME, string)
 
     def lex_numeric(self):
-        c = self.peek()
+        char = self.peek()
         snum = ''
 
-        while curses.ascii.isdigit(c) or c in NUM_SYMS:
-            snum = snum + c
-            c = self.next()
+        while curses.ascii.isdigit(char) or char in NUM_SYMS:
+            snum = snum + char
+            char = self.next()
 
         self.push_token(TokenType.NUM_LIT, float(snum))
 
     def lex_string(self):
         c = self.next()
-        escape = { 'n' : '\n'
-                 , 't' : '\t'
-                 , 'd' : '\d'
-                 , 'f' : '\f'
-                 , 'r' : '\r'
-                 , '"' : '"'
-                 , '\\' : '\\' }
+        escape = {
+            'n': '\n',
+            't': '\t',
+            'd': '\d',
+            'f': '\f',
+            'r': '\r',
+            '"': '"',
+            '\\': '\\'
+        }
 
         full = ''
         while c != '"':
@@ -223,12 +225,14 @@ class SHAUNDecoder(object):
         return self.tok().v
 
     def parse_value(self):
-        fl = { TokenType.LBRACKET    : self.parse_object
-                , TokenType.LHOOK    : self.parse_list
-                , TokenType.STR_LIT  : self.parse_string
-                , TokenType.NULL_LIT : self.parse_null
-                , TokenType.BOOL_LIT : self.parse_bool
-                , TokenType.NUM_LIT  : self.parse_numeric }
+        fl = {
+            TokenType.LBRACKET: self.parse_object,
+            TokenType.LHOOK: self.parse_list,
+            TokenType.STR_LIT: self.parse_string,
+            TokenType.NULL_LIT: self.parse_null,
+            TokenType.BOOL_LIT: self.parse_bool,
+            TokenType.NUM_LIT: self.parse_numeric
+        }
 
         for t, f in fl.items():
             if self.tok().t == t:
@@ -259,8 +263,8 @@ class SHAUNDecoder(object):
 
         if self.no_unit_single:
             return val
-        else:
-            return self.numeric_ctor(val, None)
+
+        return self.numeric_ctor(val, None)
 
     def parse_bool(self):
         self.check_tt(TokenType.BOOL_LIT, 'expected bool litteral')
@@ -273,7 +277,7 @@ class SHAUNDecoder(object):
     def parse(self):
         if self.tok().t == TokenType.LBRACKET:
             return self.parse_object()
-        
+
         obj = {}
         while self.ntok().t != TokenType.RBRACKET:
             name = self.parse_name()
@@ -289,4 +293,3 @@ class SHAUNDecoder(object):
     def decode(self):
         self.lex()
         return self.parse()
-
