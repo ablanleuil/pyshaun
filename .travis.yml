@@ -9,4 +9,5 @@ python:
   - "nightly"
 
 script:
+  - python setup.py build
   - pytest
