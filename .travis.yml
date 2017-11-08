@@ -10,5 +10,5 @@ python:
 
 script:
   - python setup.py build
-  - python seyup.py install
+  - python setup.py install
   - pytest
