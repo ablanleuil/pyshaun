@@ -10,4 +10,5 @@ python:
 
 script:
   - python setup.py build
+  - python seyup.py install
   - pytest
