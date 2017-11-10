@@ -4,6 +4,13 @@ from enum import Enum
 from .numeric import Numeric
 
 __all__ = ['SHAUNDecoder']
+"""
+this function will be useful when dealing with non-decimal numeric values
+
+def is_base(c, b=10):
+    digits = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
+    return c in digits[:b]
+"""
 
 class ParseError(BaseException):
     def __init__(self, raw, col, msg):
@@ -92,7 +99,27 @@ class SHAUNDecoder(object):
             c = self.next()
 
     def skipcom(self):
-        pass
+        c = self.peek()
+        # if we have // or /* */
+        if c == '/':
+            c = self.next()
+            if c == '/':            # //    case
+                while c != '\n':
+                    c = self.next()
+            elif c == '*':          # /* */ case
+                c = self.next()
+                while True:
+                    while c != '*':
+                        c = self.next()
+                    c = self.next()
+                    if c == '/':
+                        break
+        elif c == '(':              # ( )   case
+            while c != ')':
+                c = self.next()
+        elif c == '#':              # #     case
+            while c != '\n':
+                c = self.next()
 
     def lex(self):
         char = self.peek()
