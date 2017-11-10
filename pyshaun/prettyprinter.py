@@ -8,16 +8,18 @@ class SHAUNPP(object):
         self.fs = ''
 
     def print(self, to_print):
-        lst = [ (lambda x: isinstance(x, (list, tuple)), self.print_list)
-              , (lambda x: isinstance(x, dict), self.print_object)
-              , (lambda x: isinstance(x, bool), self.print_bool)
-              , (lambda x: isinstance(x, (int, float, Numeric)), self.print_numeric)
-              , (lambda x: x is None, self.print_null)
-              , (lambda x: isinstance(x, str), self.print_string) ]
+        lst = [
+            (lambda x: isinstance(x, (list, tuple)), self.print_list),
+            (lambda x: isinstance(x, dict), self.print_object),
+            (lambda x: isinstance(x, bool), self.print_bool),
+            (lambda x: isinstance(x, (int, float, Numeric)), self.print_numeric),
+            (lambda x: x is None, self.print_null),
+            (lambda x: isinstance(x, str), self.print_string)
+        ]
 
-        for (cond, f) in lst:
+        for (cond, func) in lst:
             if cond(to_print):
-                return f(to_print)
+                return func(to_print)
 
     def indent(self):
         self.put(''.join(self.indent_list))
@@ -38,10 +40,10 @@ class SHAUNPP(object):
     def print_list(self, lst):
         self.put('[')
         self.inc(2)
-        for e in lst:
+        for elem in lst:
             self.put('\n')
             self.indent()
-            self.print(e)
+            self.print(elem)
         self.dec()
         self.put('\n')
         self.indent()
@@ -49,16 +51,16 @@ class SHAUNPP(object):
 
     def print_object(self, obj):
         self.put('{')
-        self.inc(2)       
-        for k, v in obj.items():
+        self.inc(2)
+        for key, value in obj.items():
             self.put('\n')
             self.indent()
-            self.put(k + ': ')
+            self.put(key + ': ')
 
-            self.inc(len(k) + 2)
-            self.print(v)
+            self.inc(len(key) + 2)
+            self.print(value)
             self.dec()
-    
+
         self.dec()
         self.put('\n')
         self.indent()
@@ -73,26 +75,28 @@ class SHAUNPP(object):
         else:
             self.put('false')
 
-    def print_null(self, n):
+    def print_null(self, _):
         self.put('null')
 
     def print_string(self, string):
         self.put('"' + self.escape(string) + '"')
 
-    def escape(self, s):
+    def escape(self, string):
         ret = ''
-        escape = { '\t' : '\\t'
-                 , '\n' : '\\n'
-                 , '\r' : '\\r'
-                 , '\d' : '\\d'
-                 , '\f' : '\\f'
-                 , '"'  : '\\"'
-                 , '\\' : '\\\\' }
-        for c in s:
+        escape = {
+            '\t' : '\\t',
+            '\n' : '\\n',
+            '\r' : '\\r',
+            '\d' : '\\d',
+            '\f' : '\\f',
+            '"'  : '\\"',
+            '\\' : '\\\\'
+        }
+        for char in string:
             try:
-                ret += escape[c]
-            except:
-                ret += c
+                ret += escape[char]
+            except KeyError:
+                ret += char
         return ret
 
     def dump(self):
