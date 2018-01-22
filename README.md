@@ -1,7 +1,7 @@
 # Installation
 
 ```zsh
-pip pyshaun
+pip install pyshaun
 ```
 
 # How to use quickly

@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name="pyshaun",
     packages=["pyshaun"],
-    version="0.1.2",
+    version="0.1.6",
     description="SHAUN implementation",
     author="Arthur Blanleuil",
     author_email="arthur.blanleuil@gmail.com",

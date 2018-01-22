@@ -152,7 +152,7 @@ class SHAUNDecoder(object):
         char = self.peek()
         string = ''
 
-        while curses.ascii.isalnum(char) or char == '_':
+        while char != '' and (curses.ascii.isalnum(char) or char == '_'):
             string = string + char
             char = self.next()
 
@@ -167,7 +167,7 @@ class SHAUNDecoder(object):
         char = self.peek()
         snum = ''
 
-        while curses.ascii.isdigit(char) or char in NUM_SYMS:
+        while char != '' and (curses.ascii.isdigit(char) or char in NUM_SYMS):
             snum = snum + char
             char = self.next()
 
@@ -223,11 +223,17 @@ class SHAUNDecoder(object):
         self.tokens.append(Token(t, v, self.raw, self.col))
 
     def tok(self):
-        return self.tokens[self.ti]
+        if len(self.tokens) == self.ti:
+            return None
+        else:
+            return self.tokens[self.ti]
 
     def ntok(self):
         self.ti = self.ti + 1
         return self.tok()
+
+    def remtok(self):
+        return len(self.tokens) - self.ti
 
     def check_tt(self, tt, msg):
         if self.tok().t != tt:
@@ -283,10 +289,15 @@ class SHAUNDecoder(object):
     def parse_numeric(self):
         self.check_tt(TokenType.NUM_LIT, 'expected numeric litteral')
         val = self.tok().v
-        unit = None
-        if self.tokens[self.ti+1].t == TokenType.NAME and self.tokens[self.ti+2].t != TokenType.ATTRIB_SEP:
-            unit = self.ntok().v
-            return self.numeric_ctor(val, unit)
+        if self.remtok() > 1:
+            if self.tokens[self.ti+1].t == TokenType.NAME:
+                if self.remtok() > 2:
+                    if self.tokens[self.ti+2].t != TokenType.ATTRIB_SEP:
+                        unit = self.ntok().v
+                        return self.numeric_ctor(val, unit)
+                else:
+                    unit = self.ntok().v
+                    return self.numeric_ctor(val, unit)
 
         if self.no_unit_single:
             return val
@@ -306,13 +317,14 @@ class SHAUNDecoder(object):
             return self.parse_object()
 
         obj = {}
-        while self.ntok().t != TokenType.RBRACKET:
+        while self.tok() != None:
             name = self.parse_name()
             self.ntok()
             self.check_tt(TokenType.ATTRIB_SEP, 'expected attribute separator')
             self.ntok()
             val = self.parse_value()
             obj[name] = val
+            self.ntok()
 
         return obj
 

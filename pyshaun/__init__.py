@@ -1,4 +1,4 @@
-__version__ = '0.1.1'
+__version__ = '0.1.6'
 __all__ = [ 'load', 'load_file', 'dump', 'Numeric' ]
 
 from .decoder import SHAUNDecoder
@@ -7,10 +7,12 @@ from .numeric import Numeric
 
 def load_file(fp, **kwargs):
     try:
-        f = open(str(fp), 'r')
-        return load(f.read(), **kwargs)
+        if isinstance(fp, str):
+            return load(open(fp, 'r').read(), **kwargs)
+        else:
+            return load(fp.read(), **kwargs)
     except:
-        return load(fp.read(), **kwargs)
+        return {}
 
 def load(s, **kwargs):
     dec = SHAUNDecoder(s, **kwargs)
